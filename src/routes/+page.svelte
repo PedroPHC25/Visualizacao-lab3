@@ -21,6 +21,12 @@
     
     $: map?.on("move", evt => mapViewChanged++);
 
+    function getCoords(station) {
+        let point = new mapboxgl.LngLat(+station.Long, +station.Lat);
+        let { x, y } = map.project(point);
+        return { cx: x, cy: y };
+    }
+
     async function loadStationData() {
         try {
             const csvUrl = 'https://vis-society.github.io/labs/8/data/bluebikes-stations.csv';
@@ -96,32 +102,25 @@
                 "line-opacity": 0.4
             },
         });
-
     }
 
-    function getCoords (station) {
-        let point = new mapboxgl.LngLat(+station.Long, +station.Lat);
-        let {x, y} = map.project(point);
-        return {cx: x, cy: y};
-    }
-
+    // Executa ao montar o componente
     onMount(async () => {
         await initMap();
         await loadStationData();
         await loadStationDemand();
 
-        departures = d3.rollup(trips, v => v.length, d => d.start_station_id);
-        arrivals = d3.rollup(trips, v => v.length, d => d.end_station_id);
+        const departures = d3.rollup(trips, v => v.length, d => d.start_station_id);
+        const arrivals = d3.rollup(trips, v => v.length, d => d.end_station_id);
 
         stations = stations.map(station => {
-            let id = station.id;
+            const id = station.id;
             station.arrivals = arrivals.get(id) ?? 0;
             station.departures = departures.get(id) ?? 0;
             station.totalTraffic = station.arrivals + station.departures;
             return station;
         });
     });
-
 </script>
 
 
